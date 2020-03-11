@@ -7,7 +7,9 @@
 struct f_t{
 
     //insert your code here
-
+     int iter;
+     int outSize;
+     int num;
 };
 
 
