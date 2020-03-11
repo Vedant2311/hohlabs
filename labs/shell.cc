@@ -1268,7 +1268,7 @@ void render(const renderstate_t& state, int w, int h, addr_t vgatext_base){
 	hoh_debug("running:"<<state.tasksRunning);
 	uint32_t n=5;
 	drawtext(X,paneYf-statusH/2, statusText,statusTextL, TPstatusBG,TPstatusFG, w,h,vgatext_base);
-	drawnumberindec(X,paneYf-statusH/2-4,n,1, TPstatusBG,TPstatusFG, w,h,vgatext_base);
+	drawnumberindec(X,paneYf-statusH/2,n,1, TPstatusBG,TPstatusFG, w,h,vgatext_base);
 	
 	
 }

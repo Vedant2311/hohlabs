@@ -26,6 +26,7 @@
 struct preempt_t{
   // your data structure, if any
   addr_t saved_stack; //feel free to change it - provided as an example
+  bool yielding = false;
 
 };
 
@@ -53,8 +54,82 @@ struct preempt_t{
       "                                   \n\t"\
       "  # insert your code here          \n\t"\
       "                                   \n\t"\
+      "  #___RACE Check___                \n\t"\
+      "  pushl %eax                       \n\t"\
+	  "  movl %eax, %gs: "STR(core_offset_preempt+4) "	\n\t"\
+      "  test %eax, %eax                  \n\t"\
+      "  popl %eax		                  \n\t"\
+      "  jne iret_toring0                 \n\t"\
       "                                   \n\t"\
+      "  #___PROLOGUE____				  \n\t"\
+      "  #Push Required Registers		  \n\t"\
+      "  pushl %ebp       				  \n\t"\
+      "  pushl %eax       				  \n\t"\
+      "  pushl %ebx       				  \n\t"\
+      "  pushl %ecx       				  \n\t"\
+      "  pushl %edx       				  \n\t"\
+      "  pushl %esi       				  \n\t"\
+      "  pushl %edi       				  \n\t"\
+      "                                   \n\t"\
+      "  #_Push FP/SIMD Registers		  \n\t"\
+      "  mov %ebp, %esp					  \n\t"\
+      "  sub %esp, 512					  \n\t"\
+      "  and %esp, 0x0fffffff0			  \n\t"\
+      "  fxsave (%esp)					  \n\t"\
+      "                                   \n\t"\
+      "  #___BODY____					  \n\t"\
+      "  pushl $1f                        \n\t"\
+   	  "  movl %esp, %gs:"STR(core_offset_preempt+0) " 	\n\t"\
+   	  "  movl %gs:"STR(core_offset_mainstack) ", %esp 	\n\t"\
+   	  "  sti                              \n\t"\
+      "  ret                              \n\t"\
+      "                                   \n\t"\
+      "1:	                              \n\t"\
+      "  #___EPILOGUE____				  \n\t"\
+      "  #Pop FP/SIMD Registers		  	  \n\t"\
+      "  fxrstor (%esp)                   \n\t"\
+      "  mov %esp, %ebp                      \n\t"\
+      "                                   \n\t"\
+  	  "  #_Pop Required Registers		  \n\t"\
+      "  popl %edi       				  \n\t"\
+      "  popl %esi       				  \n\t"\
+      "  popl %edx       				  \n\t"\
+      "  popl %ecx       				  \n\t"\
+      "  popl %ebx       				  \n\t"\
+      "  popl %eax       				  \n\t"\
+      "  popl %ebp       				  \n\t"\
       "  jmp iret_toring0                 \n\t"\
       )                                        \
+/*
+can jump to iret label if race
+push eax so that I can use that to do computaions
 
-
+Notice that you need to create a space for 512 bytes, aligned at a 16-byte boundary to be able to execute the FXSAVE instruction.
+#define stack_saverestore(from_stack,to_stack) do {                  \
+ asm volatile(                                                       \
+   "  pushl %%eax      \n\t"                                         \
+   "  pushl %%ecx      \n\t"                                         \
+   "  pushl %%ebp      \n\t"                                         \
+   "  pushl $1f        \n\t"                                         \
+   "                   \n\t"                                         \
+   "  movl  %%esp,(%0) \n\t"                                         \
+   "  movl  (%1),%%esp \n\t"                                         \
+   "                   \n\t"                                         \
+   "  ret              \n\t"                                         \
+   "1:                 \n\t"                                         \
+   "  popl %%ebp       \n\t"                                         \
+   "  popl %%ecx       \n\t"                                         \
+   "  popl %%eax       \n\t"                                         \
+  :                                                                  \
+  :"a" (&from_stack), "c"  (&to_stack)                               \
+  :_ALL_REGISTERS, "memory"                                          \
+ );                                                                  \
+} while(false)
+*/
+// %gs:core_offset_preempt will point to start of preempt_t instance
+//      "  push [ebp+eflags_offset]         \n\t"\???##
+// for example: 
+// %gs:0 will return pointer to core_t
+// %gs:core_offset_mainstack will return core_t::main_stack
+// %gs:core_offset_preempt+0 will return core_t::saved_stack
+// %gs:core_offset_preempt+1 will return bool yielding

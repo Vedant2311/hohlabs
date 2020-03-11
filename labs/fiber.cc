@@ -30,12 +30,13 @@ void f(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone){
 
 // ### Factor function with the tast part implemented
 // Function to get the factors of a given number    
-void fiberFactor(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone,shellstate_t* shellstate){	//##Put variables all as local??
+void fiberFactor(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone,shellstate_t* shellstate,preempt_t* preempt){	//##Put variables all as local??
 
 	addr_t& main_stack = *pmain_stack; // boilerplate: to ease the transition from existing code
 	addr_t& f_stack    = *pf_stack;
 	int& ret           = *pret;
 	bool& done         = *pdone;
+//	preempt_t& preempt = *ppreempt;
 	
 	int iter,outSize,num;
 
@@ -106,11 +107,11 @@ void fiberFactor(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone,s
 }
 
 
-void shell_step_fiber(shellstate_t& shellstate, addr_t& main_stack, addr_t& f_stack, addr_t f_array, uint32_t f_arraysize){
+void shell_step_fiber(shellstate_t& shellstate, addr_t& main_stack, preempt_t& preempt, addr_t& f_stack, addr_t f_array, uint32_t f_arraysize, dev_lapic_t& lapic){
 
 	//For the Factor code
 	if(shellstate.fiber_factor_old){	//Called First Time for old implementaion only
-        stack_init5(f_stack, f_array, f_arraysize, &fiberFactor, &main_stack, &f_stack, &shellstate.fiberFactor_ret, &shellstate.fiberFactor_done, &shellstate);
+        stack_init6(f_stack, f_array, f_arraysize, &fiberFactor, &main_stack, &f_stack, &shellstate.fiberFactor_ret, &shellstate.fiberFactor_done, &shellstate, &preempt);
 		shellstate.fiberFactor_done = false;
 		shellstate.fiber_factor_old=false;
     }
