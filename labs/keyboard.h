@@ -7,11 +7,15 @@ namespace lpc_kbd{
   static inline bool has_key(lpc_kbd_t& dev){
 
     //insert your code here
+    //The obf field of the status register should be set
+    return  lpc_kbd_status_obf_extract(lpc_kbd_status_rd(&dev));
   }
 
   static inline uint8_t get_key(lpc_kbd_t& dev){
 
     //insert your code here
+    //Read from the keyboard
+    return lpc_kbd_input_rd(&dev);
   }
 
 }// namespace lpc_kbd
