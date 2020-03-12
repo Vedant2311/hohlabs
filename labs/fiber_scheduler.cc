@@ -16,14 +16,14 @@
 //
 
 // Function to get the nth Fibnacci
-void fiberFib(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, preempt_t* preempt){
+void fiberFib(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, preempt_t* preempt,int index){
 
 	addr_t& main_stack = *pmain_stack; // boilerplate: to ease the transition from existing code
 	addr_t& f_stack    = *pf_stack;
 //	preempt_t& preempt = *ppreempt;		//struct to store required things
 	
 	int num;
-	int index = shellstate->index;
+//	int index = shellstate->index;
 	
 	num = shellstate->tasks[index].arg;
 
@@ -83,14 +83,14 @@ void fiberFib(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, pr
 }
 
 // Function to get the nth prime
-void fiberPrime(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, preempt_t* preempt){
+void fiberPrime(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, preempt_t* preempt,int index){
 	
 	addr_t& main_stack = *pmain_stack; // boilerplate: to ease the transition from existing code
 	addr_t& f_stack    = *pf_stack;
 //	preempt_t& preempt = *ppreempt;		//struct to store required things
 	
 	//Index will be trahsed later
-	int index = shellstate->index;
+//	int index = shellstate->index;
 	hoh_debug("index:"<<unsigned(index));
 	int num = shellstate->tasks[index].arg;
 	hoh_debug("IN PRIME of "<<num);
@@ -121,8 +121,8 @@ void fiberPrime(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, 
 			if(i%shellstate->SPEED==0){
 				shellstate->tasks[index].done=false;
 				
-				preempt->yielding=true;
-				stack_saverestore(f_stack,main_stack);	//Pass control to Kernel
+//				preempt->yielding=true;
+//				stack_saverestore(f_stack,main_stack);	//Pass control to Kernel
 				preempt->yielding=false;
 				
 				hoh_debug("PRIME nth= "<<num);
@@ -157,10 +157,14 @@ void fiberPrime(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, 
 //check probelem not going scheduling old task
 //	hoh_debug("ret:"<<shellstate->tasks[index].ret);
 	// ### Decrementing the total Functions and the Fib functions used. Make changes in the Tasks arrays
+	
+	hoh_debug("Before: total runnin:"<<shellstate->tasksRunning);
+	hoh_debug("Before: prime runnin:"<<shellstate->primeRunning);
+	
 	shellstate->tasksRunning--;
 	shellstate->primeRunning--;
-	hoh_debug("runnin:"<<shellstate->tasksRunning);
-	hoh_debug("runnin:"<<shellstate->primeRunning);
+	hoh_debug("After: total runnin:"<<shellstate->tasksRunning);
+	hoh_debug("After: prime runnin:"<<shellstate->primeRunning);
 	//Move struct to history list
 //		memcpy( (void*)&RTCclk, (void*)&RTCclkBuffert, sizeof(RTCclk) );
 //		shellstate->structCopy(shellstate->prevTasks[tasksCompleted],shellstate->tasksRunning[index])
@@ -181,13 +185,13 @@ void fiberPrime(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, 
 
 // Function to get the factors of a given number    
 // ### Factor function with the tast part implemented
-void fiberFactor(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, preempt_t* preempt){
+void fiberFactor(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, preempt_t* preempt,int index){
 	
 	addr_t& main_stack = *pmain_stack; // boilerplate: to ease the transition from existing code
 	addr_t& f_stack    = *pf_stack;
 //	preempt_t& preempt = *ppreempt;		//struct to store required things access using arrow
 	
-	int index = shellstate->index;
+//	int index = shellstate->index;
 	
 	int num = shellstate->tasks[index].arg;
 	
@@ -213,8 +217,8 @@ void fiberFactor(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate,
 //			shellstate.tasks[index].done=false;	## Do we need to do false everytime?
 			if(iter%shellstate->SPEED==0)	//Give back control to main after every 1000 iterations
 				hoh_debug(iter);
-				preempt->yielding=true;
-				stack_saverestore(f_stack,main_stack);	//Pass control to Kernel
+//				preempt->yielding=true;
+//				stack_saverestore(f_stack,main_stack);	//Pass control to Kernel
 				preempt->yielding=false;
 		}
 
@@ -313,9 +317,9 @@ maybe clean code a bit and remove redundant variables
 	
 		addr_t& f_stack = stackptrs[shellstate.index+1];	//as 0 is main
 		addr_t f_array = addr_t(arrays+(shellstate.index+1)*STACK_SIZE);
-        stack_init4(f_stack, f_array, STACK_SIZE, &fiberFactor, &main_stack, &f_stack, &shellstate, &preempt);
+        stack_init5(f_stack, f_array, STACK_SIZE, &fiberFactor, &main_stack, &f_stack, &shellstate, &preempt,shellstate.index);
 
-        stack_saverestore(main_stack,f_stack); //Call here once so that index can be stored
+//        stack_saverestore(main_stack,f_stack); //Call here once so that index can be stored
         hoh_debug("EXIT FACTOR");
 		shellstate.tasks[shellstate.index].done = false;	//Make it not done
 		shellstate.fiber_factor=false;
@@ -325,9 +329,9 @@ maybe clean code a bit and remove redundant variables
 	if(shellstate.fiber_fib){	//Called First Time
 	    addr_t& f_stack = stackptrs[shellstate.index+1];	//as 0 is main
 	 	addr_t f_array = arrays+(shellstate.index+1)*STACK_SIZE;
-        stack_init4(f_stack, f_array, STACK_SIZE, &fiberFib, &main_stack, &f_stack,&shellstate, &preempt);
+        stack_init5(f_stack, f_array, STACK_SIZE, &fiberFib, &main_stack, &f_stack,&shellstate, &preempt,shellstate.index);
 
-        stack_saverestore(main_stack,f_stack); //Call here once so that index can be stored
+//        stack_saverestore(main_stack,f_stack); //Call here once so that index can be stored
         hoh_debug("EXIT FIB");
 		shellstate.tasks[shellstate.index].done = false;
 		shellstate.fiber_fib=false;
@@ -339,8 +343,9 @@ maybe clean code a bit and remove redundant variables
 //    	hoh_debug("In shellstate");
   		addr_t& f_stack = stackptrs[shellstate.index+1];	//as 0 is main
 	 	addr_t f_array = arrays+(shellstate.index+1)*STACK_SIZE;
-        stack_init4(f_stack, f_array, STACK_SIZE, &fiberFib, &main_stack, &f_stack,&shellstate, &preempt);
+        stack_init5(f_stack, f_array, STACK_SIZE, &fiberPrime, &main_stack, &f_stack,&shellstate, &preempt,shellstate.index);
         hoh_debug("f:"<<f_stack);
+//        stack_saverestore(main_stack,f_stack); 
 		hoh_debug("EXIT PRIME");
 		shellstate.tasks[shellstate.index].done = false;
 		shellstate.fiber_prime=false;
@@ -360,11 +365,15 @@ maybe clean code a bit and remove redundant variables
 
 		addr_t& f_stack = stackptrs[shellstate.schedulerIndex+1];	//1 Indexed as 0 is main
 	   	//Need to set timer
-    	lapic.reset_timer_count(100000000);
-    	hoh_debug("hah"<<f_stack);
+
+    	hoh_debug("hah: "<<f_stack);
+     	lapic.reset_timer_count(10000000);
     	//Restore the corrspoding stack
         stack_saverestore(main_stack,f_stack); 
-    	hoh_debug("hah2"<<f_stack);
+        preempt.yielding=false;
+    	hoh_debug("hah2: "<<f_stack);
+    	hoh_debug("saved_stak:"<<preempt.saved_stack);
+	   	hoh_debug("yie:"<<preempt.yielding);
 		f_stack=preempt.saved_stack ;	//Get the stack saved in the struct by asm
         
 //    	hoh_debug("ptr: "<<unsigned(p));

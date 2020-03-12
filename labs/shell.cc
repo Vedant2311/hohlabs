@@ -409,7 +409,7 @@ void shell_update(uint8_t scankey, shellstate_t& stateinout){
 	//--
 	else if(!strcmp(stateinout.name,"Prime_Menu")){
 	// We have selected Factor from the menu
-
+		hoh_debug("primerun: "<<stateinout.primeRunning);
 		if(scankey==0x1c && stateinout.tasksRunning<stateinout.MAX_TASKS && stateinout.primeRunning<stateinout.MAX_TASKS_F){//Check if task slot available ##Show error if not available???
 			// Enter only if Task Slot Available 
 			
@@ -425,7 +425,9 @@ void shell_update(uint8_t scankey, shellstate_t& stateinout){
 				//## Can do error check here also?? for unavailable slots
 				
 				// ### Incrementing the Index variables
+				hoh_debug("Before calling: " << stateinout.primeRunning);
 				stateinout.primeRunning++;
+				hoh_debug("AFter calling the prime: " << stateinout.primeRunning);
 				stateinout.index = index;	//## FOr the index of the current task??				
 				stateinout.fiber_prime=true;	//Call the Prime Fiber	
 									
@@ -1267,7 +1269,6 @@ void render(const renderstate_t& state, int w, int h, addr_t vgatext_base){
 	X+=statusTextL;
 	hoh_debug("running:"<<state.tasksRunning);
 	uint32_t n=5;
-	drawtext(X,paneYf-statusH/2, statusText,statusTextL, TPstatusBG,TPstatusFG, w,h,vgatext_base);
 	drawnumberindec(X,paneYf-statusH/2,n,1, TPstatusBG,TPstatusFG, w,h,vgatext_base);
 	
 	
