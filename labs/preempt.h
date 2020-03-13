@@ -56,26 +56,15 @@ struct preempt_t{
       "                                   \n\t"\
       "  #___RACE Check___                \n\t"\
       "  pushl %eax                       \n\t"\
-	  "  movl %eax, %gs: "STR(core_offset_preempt+4) "	\n\t"\
+	  "  movl %gs: "STR(core_offset_preempt+4)", %eax 	\n\t"\
       "  test  $1, %eax	                  \n\t"\
       "  popl %eax		                  \n\t"\
       "  jne iret_toring0                 \n\t"\
       "                                   \n\t"\
       "  #___PROLOGUE____				  \n\t"\
       "  #Push Required Registers		  \n\t"\
-      "  pushl %ebp       				  \n\t"\
-      "  pushl %eax       				  \n\t"\
-      "  pushl %ebx       				  \n\t"\
-      "  pushl %ecx       				  \n\t"\
-      "  pushl %edx       				  \n\t"\
-      "  pushl %esi       				  \n\t"\
-      "  pushl %edi       				  \n\t"\
+      "  pushal		       				  \n\t"\
       "                                   \n\t"\
-      "  #_Push FP/SIMD Registers		  \n\t"\
-      "  mov %ebp, %esp					  \n\t"\
-      "  sub $512, %esp					  \n\t"\
-      "  and $0x0fffffff0, %esp			  \n\t"\
-      "  FXSAVE (%esp)					  \n\t"\
       "                                   \n\t"\
       "  #___BODY____					  \n\t"\
       "  pushl $1f                        \n\t"\
@@ -86,21 +75,22 @@ struct preempt_t{
       "                                   \n\t"\
       "1:	                              \n\t"\
       "  #___EPILOGUE____				  \n\t"\
-      "  #Pop FP/SIMD Registers		  	  \n\t"\
-      "  FXRSTOR (%esp)                   \n\t"\
-      "  mov %esp, %ebp                   \n\t"\
       "                                   \n\t"\
   	  "  #_Pop Required Registers		  \n\t"\
-      "  popl %edi       				  \n\t"\
-      "  popl %esi       				  \n\t"\
-      "  popl %edx       				  \n\t"\
-      "  popl %ecx       				  \n\t"\
-      "  popl %ebx       				  \n\t"\
-      "  popl %eax       				  \n\t"\
-      "  popl %ebp       				  \n\t"\
+      "  popal		       				  \n\t"\
       "  jmp iret_toring0                 \n\t"\
       )                                        \
 /*
+
+      "  #_Push FP/SIMD Registers		  \n\t"\
+      "  mov %ebp, %esp					  \n\t"\
+      "  sub $512, %esp					  \n\t"\
+      "  and $0x0fffffff0, %esp			  \n\t"\
+      "  FXSAVE (%esp)					  \n\t"\
+      
+      "  #Pop FP/SIMD Registers		  	  \n\t"\
+      "  FXRSTOR (%esp)                   \n\t"\
+      "  mov %esp, %ebp                   \n\t"\
 can jump to iret label if race
 push eax so that I can use that to do computaions
 

@@ -675,7 +675,6 @@ void shell_step(shellstate_t& stateinout){
   //   call that function( with arguments stored in stateinout) ;
 //stateinout.args[0] = 5;
 //stateinout.args[1] = 5;
-
   //Factor Enabled	##DO we have to pass the arguments to the function???and not take from variables inside 'stateinout'
 	if(stateinout.factor){	//##&&REMOVE LATER
 		//Call Factor in the state
@@ -903,7 +902,7 @@ void render(const renderstate_t& state, int w, int h, addr_t vgatext_base){
 			drawtext(PX,PY,state.errorMessage,state.errorMessageL,shellBG,shellFG, w,h,vgatext_base);
 			PY++;
 		}
-		else{	//Noraml single figit output
+		else if (state.prevTasks[i].retN<=0){	//Noraml single figit output
 			drawnumberindec(PX,PY,ret,state.maxLen,paneBG, paneFG,w,h, vgatext_base);
 			PY++;
 		}
@@ -1265,11 +1264,11 @@ void render(const renderstate_t& state, int w, int h, addr_t vgatext_base){
 	statusTextL = 15;
 	
 	X=paneX-statusTextL+paneW/2;
-	drawtext(X,paneYf-statusH/2, statusText,statusTextL, TPstatusBG,TPstatusFG, w,h,vgatext_base);
+//	drawtext(X,paneYf-statusH/2, statusText,statusTextL, TPstatusBG,TPstatusFG, w,h,vgatext_base);
 	X+=statusTextL;
 	hoh_debug("running:"<<state.tasksRunning);
 	uint32_t n=5;
-	drawnumberindec(X,paneYf-statusH/2,n,1, TPstatusBG,TPstatusFG, w,h,vgatext_base);
+//	drawnumberindec(X,paneYf-statusH/2,n,1, TPstatusBG,TPstatusFG, w,h,vgatext_base);
 	
 	
 }

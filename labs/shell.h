@@ -21,7 +21,7 @@ struct shellstate_t{
 	*/	
 	static const int maxLen = 400;	//400 max string len
 	static const int MAX_RET_VALUES=10;	//Max return values for factor
-	static const int SPEED = 1;		//AFter how many iteration should a function yield?
+	static const int SPEED = 500;		//AFter how many iteration should a function yield?
 	// General String and int Identifier
 	char name[maxLen];
 	int id;		//not in use currently

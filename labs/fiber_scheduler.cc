@@ -76,112 +76,14 @@ void fiberFib(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, pr
 //		hoh_debug("main:"<<main_stack);
 //        hoh_debug("f:"<<f_stack);
 		// Going back to main
+		preempt->yielding=true;
 		stack_saverestore(f_stack,main_stack);
 	}	
 	
 	
 }
 
-// Function to get the nth prime
-void fiberPrime(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, preempt_t* preempt,int index){
-	
-	addr_t& main_stack = *pmain_stack; // boilerplate: to ease the transition from existing code
-	addr_t& f_stack    = *pf_stack;
-//	preempt_t& preempt = *ppreempt;		//struct to store required things
-	
-	//Index will be trahsed later
-//	int index = shellstate->index;
-	hoh_debug("index:"<<unsigned(index));
-	int num = shellstate->tasks[index].arg;
-	hoh_debug("IN PRIME of "<<num);
-	
-	if (num==0){
-		// Zeroth prime asked. We will output "1"
-		shellstate->tasks[index].ret = 1;		
-	}
-	
-	else{
-		
-		// Getting the count of the numbers left
-		int counts = num;
-		
-		// Getting the output value
-		int outVal = 0;
-		
-		int i;
-		for(i=2; i<2147483647; i++){
-			int n_fact =0;
-			for (int j=2; j<i; j++){
-				if (i%j ==0){
-					n_fact=1;
-					break;
-				}
-			}
-			//Give back control to kernel every 1000 iterations ## Make thousand later
-			if(i%shellstate->SPEED==0){
-				shellstate->tasks[index].done=false;
-				
-//				preempt->yielding=true;
-//				stack_saverestore(f_stack,main_stack);	//Pass control to Kernel
-				preempt->yielding=false;
-				
-				hoh_debug("PRIME nth= "<<num);
-				hoh_debug("Iter: "<<i);
-			}			
-			
-			if (n_fact==0){
-				// Means that the given number is prime
-				counts--;
-				if (counts==0){
-					// Means that the value of i is the one that we wanted!
-					outVal=i;
-					break;
-				}
-			}
-			
-		}
-		
-		// Checking if that given nth prime comes under the limit of INT_MAX
-		if ((i==2147483647) || (counts !=0)){
-			// Gives an error that the output is too large!
-			shellstate->tasks[index].ret = -1;
-		}
-		
-		else{
-			shellstate->tasks[index].ret = outVal;
-		}
-	}
-	//To print immediately
-	shellstate->intResult[0]=shellstate->tasks[index].ret;
-	shellstate->intResult_Length=1;
-//check probelem not going scheduling old task
-//	hoh_debug("ret:"<<shellstate->tasks[index].ret);
-	// ### Decrementing the total Functions and the Fib functions used. Make changes in the Tasks arrays
-	
-	hoh_debug("Before: total runnin:"<<shellstate->tasksRunning);
-	hoh_debug("Before: prime runnin:"<<shellstate->primeRunning);
-	
-	shellstate->tasksRunning--;
-	shellstate->primeRunning--;
-	hoh_debug("After: total runnin:"<<shellstate->tasksRunning);
-	hoh_debug("After: prime runnin:"<<shellstate->primeRunning);
-	//Move struct to history list
-//		memcpy( (void*)&RTCclk, (void*)&RTCclkBuffert, sizeof(RTCclk) );
-//		shellstate->structCopy(shellstate->prevTasks[tasksCompleted],shellstate->tasksRunning[index])
-	shellstate->prevTasks[shellstate->tasksCompleted]=shellstate->tasks[index];
-	shellstate->tasksCompleted++;
-	hoh_debug("Completed: "<<shellstate->tasksCompleted);
-	//END FIBER
-	for(;;){//##What is this infinite loop for?
 
-		shellstate->tasks[index].done=true;
-		// Going back to main
-		hoh_debug("Prime DONE: "<<num);
-		stack_saverestore(f_stack,main_stack);
-	}	
-	
-
-}
 
 // Function to get the factors of a given number    
 // ### Factor function with the tast part implemented
@@ -217,8 +119,8 @@ void fiberFactor(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate,
 //			shellstate.tasks[index].done=false;	## Do we need to do false everytime?
 			if(iter%shellstate->SPEED==0)	//Give back control to main after every 1000 iterations
 				hoh_debug(iter);
-//				preempt->yielding=true;
-//				stack_saverestore(f_stack,main_stack);	//Pass control to Kernel
+				preempt->yielding=true;
+				stack_saverestore(f_stack,main_stack);	//Pass control to Kernel
 				preempt->yielding=false;
 		}
 
@@ -242,7 +144,7 @@ void fiberFactor(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate,
 	shellstate->intResult_Length=shellstate->tasks[index].retN;
 		for(int i=0;i<shellstate->tasks[index].retN;i++){
 			shellstate->intResult[i]=shellstate->tasks[index].rets[i];
-			hoh_debug("act:"<<shellstate->intResult[i]);
+//			hoh_debug("act:"<<shellstate->intResult[i]);
 		}
 		hoh_debug("size;"<<shellstate->intResult_Length);
 
@@ -265,10 +167,99 @@ void fiberFactor(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate,
 //		hoh_debug("main:"<<main_stack);
 //        hoh_debug("f:"<<f_stack);
 		// Going back to main
+		preempt->yielding=true;
 		stack_saverestore(f_stack,main_stack);
 	}	
 }
 
+// Function to get the nth prime
+void fiberPrime(addr_t* pmain_stack, addr_t* pf_stack,shellstate_t* shellstate, preempt_t* preempt,int index){
+	
+	addr_t& main_stack = *pmain_stack; // boilerplate: to ease the transition from existing code
+	addr_t& f_stack    = *pf_stack;
+//	preempt_t& preempt = *ppreempt;		//struct to store required things
+	
+	//Index will be trahsed later
+//	int index = shellstate->index;
+	hoh_debug("index:"<<unsigned(index));
+	int num = shellstate->tasks[index].arg;
+	hoh_debug("IN PRIME of "<<num);
+	if (num==0){
+		// Zeroth prime asked. We will output "1"
+		shellstate->tasks[index].ret = 1;		
+	}
+	else{
+		// Getting the count of the numbers left
+		int counts = num;
+		
+		// Getting the output value
+		int outVal = 0;
+		
+		int i;
+		for(i=2; i<2147483647; i++){
+			int n_fact =0;
+			for (int j=2; j<i; j++){
+				if (i%j ==0){
+					n_fact=1;
+					break;
+				}
+			}
+			//Give back control to kernel every 1000 iterations ## Make thousand later
+			if(i%shellstate->SPEED==0){
+				shellstate->tasks[index].done=false;
+				
+				preempt->yielding=true;
+				stack_saverestore(f_stack,main_stack);	//Pass control to Kernel
+				preempt->yielding=false;
+			}			
+			
+			if (n_fact==0){
+				// Means that the given number is prime
+				counts--;
+				if (counts==0){
+					// Means that the value of i is the one that we wanted!
+					outVal=i;
+					break;
+				}
+			}
+			
+		}
+		
+		// Checking if that given nth prime comes under the limit of INT_MAX
+		if ((i==2147483647) || (counts !=0)){
+			// Gives an error that the output is too large!
+			shellstate->tasks[index].ret = -1;
+		}
+		
+		else{
+			shellstate->tasks[index].ret = outVal;
+		}
+	}
+	//To print immediately
+	shellstate->intResult[0]=shellstate->tasks[index].ret;
+	shellstate->intResult_Length=1;
+//check probelem not going scheduling old task
+	// ### Decrementing the total Functions and the Fib functions used. Make changes in the Tasks arrays
+	
+	
+	shellstate->tasksRunning--;
+	shellstate->primeRunning--;
+	//Move struct to history list
+	shellstate->prevTasks[shellstate->tasksCompleted]=shellstate->tasks[index];
+	shellstate->tasksCompleted++;
+	hoh_debug("Completed: "<<shellstate->tasksCompleted);
+	//END FIBER
+	for(;;){
+
+		shellstate->tasks[index].done=true;
+		// Going back to main
+		hoh_debug("Prime DONE: "<<num);
+		preempt->yielding=true;
+		stack_saverestore(f_stack,main_stack);
+	}	
+	
+
+}
 
 void shell_step_fiber_scheduler(shellstate_t& shellstate, addr_t& main_stack, preempt_t& preempt, addr_t stackptrs[], size_t stackptrs_size, addr_t arrays, size_t arrays_size, dev_lapic_t& lapic){
        //The index 0 is the Main stack
@@ -366,15 +357,17 @@ maybe clean code a bit and remove redundant variables
 		addr_t& f_stack = stackptrs[shellstate.schedulerIndex+1];	//1 Indexed as 0 is main
 	   	//Need to set timer
 
-    	hoh_debug("hah: "<<f_stack);
-     	lapic.reset_timer_count(10000000);
+     	lapic.reset_timer_count(1000000);
     	//Restore the corrspoding stack
+//    	hoh_debug("goin in :"<<shellstate.schedulerIndex);
         stack_saverestore(main_stack,f_stack); 
-        preempt.yielding=false;
-    	hoh_debug("hah2: "<<f_stack);
-    	hoh_debug("saved_stak:"<<preempt.saved_stack);
-	   	hoh_debug("yie:"<<preempt.yielding);
-		f_stack=preempt.saved_stack ;	//Get the stack saved in the struct by asm
+        if(preempt.yielding==false)
+        		f_stack=preempt.saved_stack ;	//Get the stack saved in the struct by asm
+       	preempt.yielding=false;
+//    	hoh_debug("hah2: "<<f_stack);
+//    	hoh_debug("saved_stak:"<<preempt.saved_stack);
+//	   	hoh_debug("yie:"<<preempt.yielding);
+
         
 //    	hoh_debug("ptr: "<<unsigned(p));
     }
