@@ -1,5 +1,5 @@
 #pragma once
-
+#include<atomic>
 //
 // INVARIANT: w_deleted_count <= w_deleting_count <= w_cached_read_count <= shared_read_count <= r_reading_count <= r_cached_write_count <= shared_write_count <= w_writing_count <= w_deleted_count + MAX_SIZE
 //
@@ -31,6 +31,9 @@ struct channel_t{
   public:
 
     //insert your code here
+    
+	std::atomic<int> shared_read_count,
+				shared_write_count;
 
   public:
 
@@ -40,6 +43,8 @@ struct channel_t{
     channel_t(){
 
       // insert your code here
+      shared_read_count=0;
+      shared_write_count=0;
 
     }
 };
@@ -51,6 +56,11 @@ struct channel_t{
 struct writeport_t{
 public:
     //insert your code here
+    int w_writing_count,
+    	w_deleting_count,
+    	w_deleted_count,
+    	w_cached_read_count,
+    	MAX_SIZE;
 
 public:
 
@@ -60,6 +70,11 @@ public:
   writeport_t(size_t tsize)
   {
     //insert code here
+    w_writing_count=0;	//Write Head
+    w_deleting_count=0;	//Delete Head
+    w_deleted_count=0;	//Tail
+    w_cached_read_count=0;
+    MAX_SIZE=tsize;
   }
 
 public:
@@ -72,8 +87,7 @@ public:
   size_t write_reservesize(){
 
     // insert your code here
-
-    return 0;
+	return MAX_SIZE-(w_writing_count-w_deleted_count);
   }
 
   //
@@ -82,8 +96,7 @@ public:
   bool write_canreserve(size_t n){
 
     // insert your code here
-
-    return false;
+    return n<=write_reservesize();
   }
 
   //
@@ -91,8 +104,8 @@ public:
   //
   size_t write_reserve(size_t n){
     // insert your code here
-
-    return 0;
+    w_writing_count+=n;	//Increment write by n
+    return w_writing_count-n;	//-n to give the first write index
   }
 
   //
@@ -103,7 +116,7 @@ public:
   void write_release(channel_t& ch){
 
     // insert your code here
-
+    ch.shared_write_count=w_writing_count;	//Push Writes
   }
 
 
@@ -118,7 +131,7 @@ public:
   void read_acquire(channel_t& ch){
 
     //insert your code here
-
+	w_cached_read_count = ch.shared_read_count;	//Pull Reads
   }
 
 
@@ -130,7 +143,7 @@ public:
   size_t delete_reservesize(){
     //insert your code here
 
-    return 0;
+    return w_cached_read_count-w_deleted_count;
   }
 
   //
@@ -138,8 +151,7 @@ public:
   //
   bool delete_canreserve(size_t n){
     //insert your code here
-
-    return false;
+    return n<=delete_reservesize();
   }
 
   //
@@ -147,8 +159,8 @@ public:
   //
   size_t delete_reserve(size_t n){
     //insert your code here
-
-    return 0;
+	w_deleting_count+=n;
+    return w_deleting_count-n;	// to give first index of deleting
   }
 
 
@@ -157,7 +169,7 @@ public:
   //
   void delete_release(){
     //insert your code here
-
+	w_deleted_count=w_deleting_count;	//Commit deleted
   }
 
 
@@ -171,8 +183,10 @@ public:
 struct readport_t{
 public:
 
-  //insert your code here
-
+	//insert your code here
+	int r_reading_count,
+		r_cached_write_count,
+		MAX_SIZE;
 
 public:
   //
@@ -180,19 +194,20 @@ public:
   //
   readport_t(size_t tsize)
   {
-
     //insert your code here
-
+    r_reading_count=0;
+    r_cached_write_count=0;
+    MAX_SIZE=tsize;
   }
+  
   public:
-
   //
   // Read/Write shared memory data structure
   //
   void write_acquire(channel_t& ch){
 
     //insert your code here
-
+	r_cached_write_count=ch.shared_write_count;	//Pull Write Count
   }
 
   //
@@ -201,8 +216,7 @@ public:
   size_t read_reservesize(){
 
     //insert your code here
-
-    return 0;
+    return r_cached_write_count-r_reading_count;
   }
 
   //
@@ -211,8 +225,7 @@ public:
   bool read_canreserve(size_t n){
 
     //insert your code here
-
-    return false;
+    return n<=read_reservesize();
   }
 
   //
@@ -221,8 +234,8 @@ public:
   size_t read_reserve(size_t n){
 
     //insert your code here
-
-    return 0;
+	r_reading_count+=n;
+    return r_reading_count-n;	//-n to give first index
   }
 
   //
@@ -231,7 +244,7 @@ public:
   void read_release(channel_t& ch){
 
     //insert your code here
-
+	ch.shared_read_count=r_reading_count;	//Push Read Count
   }
 
 };
