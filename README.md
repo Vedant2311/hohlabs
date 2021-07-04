@@ -22,3 +22,4 @@ The kernel was built on top of the [HoHlabs](https://hohlabs.github.io/) framewo
 
 ## Lab-3: Concurrency
 
+- **SPSC Queue**: Introoduced multicore programming by implementing a SPSC queue and use it to send messages between two cores. Implemented Leslie Lamport’s portable lock-free single-producer single-consumer bounded buffer algorithm, modified to suit the given template, by using a shared data-structure between the producer and the consumer.
